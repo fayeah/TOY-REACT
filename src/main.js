@@ -2,7 +2,10 @@ import {createElement, Component, render} from './toy-react';
 class MyComponent extends Component{
   render() {
     // 需要return，否则Component的getRoot里面的render值为udnefined
-    return <div>my component</div>
+    return <div>
+      <h1>My Component</h1>
+      {this.children}
+    </div>
   }
 }
 

@@ -27,13 +27,20 @@ export function createElement(target, attribute, ...children) {
   for (const key in attribute) {
     e.setAttribute(key, attribute[key])
   }
-  for (const child of children) {
-    if (typeof child === 'string') {
-      e.appendChild(new TextNodeWrapper(child))
-    } else {
-      e.appendChild(child)
+  const insertChildren = (children) => {
+    for (let child of children) {
+      if (typeof child === 'string') {
+        child = new TextNodeWrapper(child)
+      } 
+      if (typeof child === 'object' && child instanceof Array) {
+        insertChildren(child)
+      } else {
+        e.appendChild(child)
+      }
     }
   }
+  insertChildren(children)
+  
   return e
 }
 
