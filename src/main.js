@@ -1,22 +1,13 @@
-function createElement(target, attribute, ...children) {
-  const e = document.createElement(target)
-  for (const key in attribute) {
-    e.setAttribute(key, attribute[key])
+import {createElement, Component, render} from './toy-react';
+class MyComponent extends Component{
+  render() {
+    // 需要return，否则Component的getRoot里面的render值为udnefined
+    return <div>my component</div>
   }
-  for (const child of children) {
-    if (typeof child === 'string') {
-      e.appendChild(document.createTextNode(child))
-    } else {
-      e.appendChild(child)
-    }
-  }
-  return e
 }
 
-// 因为有jsx plugin，以下代码会转换为createElement的形式
-// 注意直接在document直接appendChild,`document.appendChild`是不对的
-document.body.appendChild(<div class="outer-div">
-  <span>child1</span>
-  <span id="inner-span">child2</span>
-  <span>child3</span>
-</div>)
+render(<MyComponent class="outer-div">
+<span>child1</span>
+<span id="inner-span">child2</span>
+<span>child3</span>
+</MyComponent>, document.body)
