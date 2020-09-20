@@ -86,6 +86,19 @@ export class Component {
     this._range.deleteContents();
     this.render()[RENDER_TO_DOM](this._range);
   }
+  setState(newState) {
+    let merge = (oldState, newState) => {
+      for (const key in newState) {
+        if (oldState[key] === null || typeof oldState[key] !== 'object') {
+          oldState[key] = newState[key]
+        } else {
+          merge(oldState[key], newState[key]);
+        }
+      }
+    }
+    merge(this.state, newState);
+    this.rerender()
+  }
 }
 
 export function render(component, parentElement) {
