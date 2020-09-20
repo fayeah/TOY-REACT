@@ -91,8 +91,15 @@ export class Component {
     this.render()[RENDER_TO_DOM](range);
   }
   rerender() {
-    this._range.deleteContents();
-    this.render()[RENDER_TO_DOM](this._range);
+    let oldrange = this._range;
+
+    let range = document.createRange();
+    range.setStart(oldrange.startContainer, oldrange.startOffSet);
+    range.setEnd(oldrange.startContainer, oldrange.startOffSet);
+    this.render()[RENDER_TO_DOM](range);
+
+    oldrange.setStart(range.startContainer, range.endOffset);
+    oldrange.deleteContents();
   }
   setState(newState) {
     let merge = (oldState, newState) => {

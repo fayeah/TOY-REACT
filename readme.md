@@ -10,3 +10,5 @@ node version: v12.4.0
 
 tic tac toe 链接：
 https://codepen.io/gaearon/pen/gWWZgR
+
+### 实dom实现React之后，发现每次点击都是root级别的更新，消耗实极大的，后面引入虚拟dom。
