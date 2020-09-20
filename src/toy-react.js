@@ -1,80 +1,11 @@
 const RENDER_TO_DOM = Symbol('render');
-class ElementWrapper {
-  constructor(tag) {
-    this.root = document.createElement(tag)
-  }
-  setAttribute(key, value) {
-    // [\s\S]+,用来表示所有字符；[]是分组，能使用RegExp获取值
-    if (key.match(/^on([\s\S]+)$/)) {
-      this.root.addEventListener(RegExp.$1.replace(/^[\s\S]/, a => a.toLowerCase()), value);
-    }else{
-      if (key.toLowerCase() === 'classname') {
-        this.root.setAttribute('class', value);
-      }else {
-        this.root.setAttribute(key, value);
-      }
-      
-    }
-  }
-  appendChild(child) {
-    let range = document.createRange();
-    range.setStart(this.root, this.root.childNodes.length);
-    range.setEnd(this.root, this.root.childNodes.length);
-    child[RENDER_TO_DOM](range);
-  }
 
-  [RENDER_TO_DOM](range) {
-    range.deleteContents();
-    range.insertNode(this.root);
-  }
-}
-
-class TextNodeWrapper{
-  constructor(textNode) {
-    this.root = document.createTextNode(textNode)
-  }
-  [RENDER_TO_DOM](range) {
-    range.deleteContents();
-    range.insertNode(this.root);
-  }
-}
-
-export function createElement(target, attribute, ...children) {
-  let e;
-  if (typeof target === 'string') {
-    e = new ElementWrapper(target)
-  } else {
-    e = new target()
-  }
-  for (const key in attribute) {
-    e.setAttribute(key, attribute[key])
-  }
-  const insertChildren = (children) => {
-    for (let child of children) {
-      if (typeof child === 'string') {
-        child = new TextNodeWrapper(child)
-      } 
-      if (child === null) {
-        continue;
-      }
-      if (typeof child === 'object' && child instanceof Array) {
-        insertChildren(child)
-      } else {
-        e.appendChild(child)
-      }
-    }
-  }
-  insertChildren(children)
-  
-  return e
-}
-
+// Component 要放在ElementWrapper和TextWrapper之前，否则继承不到Component实例
 export class Component {
   constructor() {
     // Object.create而不是Object.assign
     this.props = Object.create(null)
     this.children = []
-    this._root = null
     this._range = null
   }
 
@@ -114,7 +45,100 @@ export class Component {
     merge(this.state, newState);
     this.rerender()
   }
+
+  get vdom() {
+    return this.render().vdom;
+  }
 }
+class ElementWrapper extends Component{
+  constructor(tag) {
+    super(tag)
+    this.type = tag
+    this.root = document.createElement(tag)
+  }
+  // setAttribute(key, value) {
+  //   // [\s\S]+,用来表示所有字符；[]是分组，能使用RegExp获取值
+  //   if (key.match(/^on([\s\S]+)$/)) {
+  //     this.root.addEventListener(RegExp.$1.replace(/^[\s\S]/, a => a.toLowerCase()), value);
+  //   }else{
+  //     if (key.toLowerCase() === 'classname') {
+  //       this.root.setAttribute('class', value);
+  //     }else {
+  //       this.root.setAttribute(key, value);
+  //     }
+      
+  //   }
+  // }
+  // appendChild(child) {
+  //   let range = document.createRange();
+  //   range.setStart(this.root, this.root.childNodes.length);
+  //   range.setEnd(this.root, this.root.childNodes.length);
+  //   child[RENDER_TO_DOM](range);
+  // }
+
+  get vdom() {
+    return {
+      type: this.type,
+      props: this.props,
+      children: this.children.map(child => child.vdom)
+    }
+  }
+
+  [RENDER_TO_DOM](range) {
+    range.deleteContents();
+    range.insertNode(this.root);
+  }
+}
+
+class TextNodeWrapper extends Component{
+  constructor(textNode) {
+    super(textNode);
+    this.textNode = textNode;
+    this.root = document.createTextNode(textNode)
+  }
+  [RENDER_TO_DOM](range) {
+    range.deleteContents();
+    range.insertNode(this.root);
+  }
+
+  get vdom() {
+    return {
+      type: '#text',
+      content: this.textNode
+    }
+  }
+}
+
+export function createElement(target, attribute, ...children) {
+  let e;
+  if (typeof target === 'string') {
+    e = new ElementWrapper(target)
+  } else {
+    e = new target()
+  }
+  for (const key in attribute) {
+    e.setAttribute(key, attribute[key])
+  }
+  const insertChildren = (children) => {
+    for (let child of children) {
+      if (typeof child === 'string') {
+        child = new TextNodeWrapper(child)
+      } 
+      if (child === null) {
+        continue;
+      }
+      if (typeof child === 'object' && child instanceof Array) {
+        insertChildren(child)
+      } else {
+        e.appendChild(child)
+      }
+    }
+  }
+  insertChildren(children)
+  
+  return e
+}
+
 
 export function render(component, parentElement) {
   let range = document.createRange();
