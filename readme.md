@@ -7,3 +7,6 @@ node version: v12.4.0
 
 ### 为什么需要range
 因为root不能满足state更新而重新触发dom渲染的需要；
+
+tic tac toe 链接：
+https://codepen.io/gaearon/pen/gWWZgR
