@@ -10,8 +10,7 @@ class MyComponent extends Component{
   render() {
     // 需要return，否则Component的getRoot里面的render值为udnefined
     return <div>
-      <h1>My Component</h1>
-      {this.children}
+      <button onClick={() => {this.state.a++;this.rerender()}}>click</button>
       {this.state.a.toString()}
     </div>
   }

@@ -4,7 +4,12 @@ class ElementWrapper {
     this.root = document.createElement(tag)
   }
   setAttribute(key, value) {
-    this.root.setAttribute(key, value)
+    // [\s\S]+,用来表示所有字符；[]是分组，能使用RegExp获取值
+    if (key.match(/^on([\s\S]+)$/)) {
+      this.root.addEventListener(RegExp.$1.replace(/^[\s\S]/, a => a.toLowerCase()), value);
+    }else{
+      this.root.setAttribute(key, value)
+    }
   }
   appendChild(child) {
     let range = document.createRange();
@@ -62,6 +67,7 @@ export class Component {
     this.props = Object.create(null)
     this.children = []
     this._root = null
+    this._range = null
   }
 
   setAttribute(key, value) {
@@ -73,7 +79,12 @@ export class Component {
   }
 
   [RENDER_TO_DOM](range) {
+    this._range = range;
     this.render()[RENDER_TO_DOM](range);
+  }
+  rerender() {
+    this._range.deleteContents();
+    this.render()[RENDER_TO_DOM](this._range);
   }
 }
 
