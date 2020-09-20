@@ -1,3 +1,4 @@
+const RENDER_TO_DOM = Symbol('render');
 class ElementWrapper {
   constructor(tag) {
     this.root = document.createElement(tag)
@@ -6,14 +7,25 @@ class ElementWrapper {
     this.root.setAttribute(key, value)
   }
   appendChild(child) {
-    // 此时不论是原生元素还是自定义组件，都是以root来获取element，child也只是一个包含root的对象
-    this.root.appendChild(child.root)
+    let range = document.createRange();
+    range.setStart(this.root, this.root.childNodes.length);
+    range.setEnd(this.root, this.root.childNodes.length);
+    child[RENDER_TO_DOM](range);
+  }
+
+  [RENDER_TO_DOM](range) {
+    range.deleteContents();
+    range.insertNode(this.root);
   }
 }
 
 class TextNodeWrapper{
   constructor(textNode) {
     this.root = document.createTextNode(textNode)
+  }
+  [RENDER_TO_DOM](range) {
+    range.deleteContents();
+    range.insertNode(this.root);
   }
 }
 
@@ -60,15 +72,15 @@ export class Component {
     this.children.push(child)
   }
 
-  get root() {
-    if (!this._root) {
-      this._root = this.render().root
-    }
-    return this._root
+  [RENDER_TO_DOM](range) {
+    this.render()[RENDER_TO_DOM](range);
   }
 }
 
 export function render(component, parentElement) {
-  // 都是拿root为element
-  parentElement.appendChild(component.root)
+  let range = document.createRange();
+  range.setStart(parentElement, 0);
+  range.setEnd(parentElement, parentElement.childNodes.length);
+  range.deleteContents()
+  component[RENDER_TO_DOM](range)
 }
